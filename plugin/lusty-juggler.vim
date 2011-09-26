@@ -599,6 +599,9 @@ class LustyJuggler
       @@KEYS.keys.each do |c|
         unmap_key(c)
       end
+      unmap_key("<CR>")
+      unmap_key("<Tab>")
+
       unmap_key("<Esc>")
       unmap_key("<C-c>")
 
