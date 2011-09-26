@@ -566,13 +566,8 @@ class LustyJuggler
       map_key("<Tab>", ":call <SID>LustyJugglerKeyPressed('TAB')<CR>")
 
       # Cancel keys.
-      map_key("i", ":call <SID>LustyJugglerCancel()<CR>")
-      map_key("q", ":call <SID>LustyJugglerCancel()<CR>")
       map_key("<Esc>", ":call <SID>LustyJugglerCancel()<CR>")
       map_key("<C-c>", ":call <SID>LustyJugglerCancel()<CR>")
-      map_key("<BS>", ":call <SID>LustyJugglerCancel()<CR>")
-      map_key("<Del>", ":call <SID>LustyJugglerCancel()<CR>")
-      map_key("<C-h>", ":call <SID>LustyJugglerCancel()<CR>")
 
       @last_pressed = 2 if LustyJuggler::alt_tab_mode_active?
       print_buffer_list(@last_pressed)
@@ -604,16 +599,8 @@ class LustyJuggler
       @@KEYS.keys.each do |c|
         unmap_key(c)
       end
-      unmap_key("<CR>")
-      unmap_key("<Tab>")
-
-      unmap_key("i")
-      unmap_key("q")
       unmap_key("<Esc>")
       unmap_key("<C-c>")
-      unmap_key("<BS>")
-      unmap_key("<Del>")
-      unmap_key("<C-h>")
 
       @running = false
       VIM::message ''
