@@ -561,10 +561,6 @@ class LustyJuggler
       @@KEYS.keys.each do |c|
         map_key(c, ":call <SID>LustyJugglerKeyPressed('#{c}')<CR>")
       end
-      # Can't use '<CR>' as an argument to :call func for some reason.
-      map_key("<CR>", ":call <SID>LustyJugglerKeyPressed('ENTER')<CR>")
-      map_key("<Tab>", ":call <SID>LustyJugglerKeyPressed('TAB')<CR>")
-
       # Cancel keys.
       map_key("<Esc>", ":call <SID>LustyJugglerCancel()<CR>")
       map_key("<C-c>", ":call <SID>LustyJugglerCancel()<CR>")
@@ -599,8 +595,6 @@ class LustyJuggler
       @@KEYS.keys.each do |c|
         unmap_key(c)
       end
-      unmap_key("<CR>")
-      unmap_key("<Tab>")
 
       unmap_key("<Esc>")
       unmap_key("<C-c>")
