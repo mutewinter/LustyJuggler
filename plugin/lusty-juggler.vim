@@ -561,9 +561,22 @@ class LustyJuggler
       @@KEYS.keys.each do |c|
         map_key(c, ":call <SID>LustyJugglerKeyPressed('#{c}')<CR>")
       end
+      # Can't use '<CR>' as an argument to :call func for some reason.
+      map_key("<CR>", ":call <SID>LustyJugglerKeyPressed('ENTER')<CR>")
+      map_key("<Tab>", ":call <SID>LustyJugglerKeyPressed('TAB')<CR>")
+
+      # Split opener keys
+      map_key("v", ":call <SID>LustyJugglerKeyPressed('v')<CR>")
+      map_key("b", ":call <SID>LustyJugglerKeyPressed('b')<CR>")
+
       # Cancel keys.
+      map_key("i", ":call <SID>LustyJugglerCancel()<CR>")
+      map_key("q", ":call <SID>LustyJugglerCancel()<CR>")
       map_key("<Esc>", ":call <SID>LustyJugglerCancel()<CR>")
       map_key("<C-c>", ":call <SID>LustyJugglerCancel()<CR>")
+      map_key("<BS>", ":call <SID>LustyJugglerCancel()<CR>")
+      map_key("<Del>", ":call <SID>LustyJugglerCancel()<CR>")
+      map_key("<C-h>", ":call <SID>LustyJugglerCancel()<CR>")
 
       @last_pressed = 2 if LustyJuggler::alt_tab_mode_active?
       print_buffer_list(@last_pressed)
@@ -576,6 +589,9 @@ class LustyJuggler
         cleanup()
       elsif @last_pressed and (@@KEYS[c] == @last_pressed or c == 'ENTER')
         choose(@last_pressed)
+        cleanup()
+      elsif @last_pressed and %w(v b).include?(c)
+        c=='v' ? vsplit(@last_pressed) : hsplit(@last_pressed)
         cleanup()
       else
         @last_pressed = @@KEYS[c]
@@ -595,9 +611,19 @@ class LustyJuggler
       @@KEYS.keys.each do |c|
         unmap_key(c)
       end
+      unmap_key("<CR>")
+      unmap_key("<Tab>")
 
+      unmap_key("v")
+      unmap_key("b")
+
+      unmap_key("i")
+      unmap_key("q")
       unmap_key("<Esc>")
       unmap_key("<C-c>")
+      unmap_key("<BS>")
+      unmap_key("<Del>")
+      unmap_key("<C-h>")
 
       @running = false
       VIM::message ''
@@ -629,6 +655,16 @@ class LustyJuggler
       buf = $lj_buffer_stack.num_at_pos(i)
       VIM::command "b #{buf}"
     end
+    
+    def vsplit(i)
+      buf = $lj_buffer_stack.num_at_pos(i)
+      VIM::command "vert sb #{buf}"
+    end
+    
+    def hsplit(i)
+      buf = $lj_buffer_stack.num_at_pos(i)
+      VIM::command "sb #{buf}"
+    end
 
     def map_key(key, action)
       ['n','v','o','i','c','l'].each do |mode|
@@ -643,7 +679,8 @@ class LustyJuggler
             buffer  = VIM::evaluate_bool("s:maparg_dict_holder['buffer']")  ? ' <buffer>' : ''
             restore_cmd = "#{mode}#{nore}map#{silent}#{expr}#{buffer} #{key} #{orig_rhs}"
           else
-            restore_cmd = "#{mode}noremap <silent> #{key} #{orig_rhs}"
+            nore = LustyJ::starts_with?(orig_rhs, '<Plug>') ? '' : 'nore'
+            restore_cmd = "#{mode}#{nore}map <silent> #{key} #{orig_rhs}"
           end
           @key_mappings_map[key] << [ mode, restore_cmd ]
         end
@@ -652,25 +689,15 @@ class LustyJuggler
     end
 
     def unmap_key(key)
-      modes_with_mappings_for_key = \
-        { 'n' => false,
-          'v' => false,
-          'o' => false,
-          'i' => false,
-          'c' => false,
-          'l' => false }
+      #first, unmap lusty_juggler's maps
+      ['n','v','o','i','c','l'].each do |mode|
+        VIM::command "#{mode}unmap <silent> #{key}"
+      end
 
       if @key_mappings_map.has_key?(key)
         @key_mappings_map[key].each do |a|
           mode, restore_cmd = *a
           VIM::command restore_cmd
-          modes_with_mappings_for_key[mode] = true
-        end
-      end
-
-      modes_with_mappings_for_key.each_pair do |mode, had_mapping|
-        unless had_mapping
-          VIM::command "#{mode}unmap <silent> #{key}"
         end
       end
     end
